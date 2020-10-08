@@ -12,7 +12,13 @@ def test(request):
     return render(request, "encyclopedia/test.html")
     
 def title(request, title):
-    return render(request, "encyclopedia/entry.html", {
-        "title": title,
-        "info": util.get_entry(title)
+    info = util.get_entry(title)
+    if info:
+        return render(request, "encyclopedia/entry.html", {
+            "title": title,
+            "info": info
     })
+    else:
+        return render(request, "encyclopedia/error.html", {
+            "title": title
+        })
