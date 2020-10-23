@@ -1,4 +1,11 @@
 from django import forms
 
-class SearchForm(forms.Form):
-    your_search = forms.CharField(label='q', max_length=50)
+from .models import Entry
+
+class EntryForm(forms.ModelForm):
+    class Meta:
+        model = Entry
+        fields = [
+            'title',
+            'textBody'
+        ]
