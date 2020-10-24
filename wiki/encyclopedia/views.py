@@ -1,4 +1,5 @@
 import os
+import random
 
 from django.shortcuts import redirect
 
@@ -10,8 +11,10 @@ from django.shortcuts import render
 from django import forms
 
 from .forms import EntryForm
+from .forms import EditForm
 
 from .models import Entry
+from .models import Edit
 
 from . import util
 
@@ -24,7 +27,7 @@ def test(request):
     return render(request, "encyclopedia/test.html")
     
 def title(request, title):
-    info = util.get_entry(title)
+    info = util.get_entry(title, True)
     if info:
         return render(request, "encyclopedia/entry.html", {
             "title": title,
@@ -37,9 +40,9 @@ def title(request, title):
         
 def search(request):
     search = request.GET.get('q')
-    info = util.get_entry(search)
+    info = util.get_entry(search, True)
     if info:
-        return render(request, "encyclopedia/search.html", {
+        return render(request, "encyclopedia/entry.html", {
             "title": search,
             "info": info
         })
@@ -63,17 +66,44 @@ def newpage(request):
         form = EntryForm(request.POST)
         if form.is_valid():
             title = form.cleaned_data['title']
-            textBody = form.cleaned_data['textBody']
+            Body = form.cleaned_data['Body']
             full_filename=os.path.join('entries', title+'.md')
+            if os.path.isfile(full_filename):
+                return render(request, "encyclopedia/conflicterror.html", {
+                    'title': title
+                })
             fout = open(full_filename, 'wt')
-            fout.write(textBody)
+            fout.write(Body)
             fout.close()
             return redirect('title', title=title)
-            #return render(request, "encyclopedia/entry.html", {
-            #    "title": title,
-            #    "info": textBody
-            #})
+
     else:
         return render(request, "encyclopedia/newpage.html", {
             'form': EntryForm()
+        })
+        
+def edit(request, title):
+    if request.method == "GET":
+        info = util.get_entry(title, False)
+        data = {
+            'Body': info
+        }
+        form = EditForm(initial = data)
+        return render(request, "encyclopedia/edit.html", {
+            'title': title,
+            'form': form
+        })
+    else: 
+        form = EditForm(request.POST)
+        if form.is_valid():
+            body = form.cleaned_data['Body']
+            util.save_entry(title, body)
+            return redirect('title', title=title)
+            
+def randomentry(request):
+    entry = random.choice(util.list_entries())
+    info = util.get_entry(entry, True)
+    return render(request, "encyclopedia/entry.html", {
+            "title": entry,
+            "info": info
         })

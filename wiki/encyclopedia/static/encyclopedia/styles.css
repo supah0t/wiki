@@ -49,3 +49,8 @@ label {
 .field {
     margin-left: 50px;
 }
+
+.edit-link {
+    text-align: right;
+    margin-right: 30px;
+}
